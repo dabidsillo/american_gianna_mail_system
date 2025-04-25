@@ -1,0 +1,206 @@
+-- Crear la base de datos si no existe
+CREATE DATABASE IF NOT EXISTS db_grupo02sc;
+
+-- Conectar a la base de datos
+-- \c db_grupo02sc;
+
+-- Tabla de usuario
+CREATE TABLE IF NOT EXISTS usuario (
+    id bigserial primary key,
+    email character varying(255) not null,
+    password character varying(255) not null,
+    nombre character varying(255) not null,
+    telefono character varying(255),
+    direccion character varying(255)
+);
+
+-- Tabla de proveedor
+CREATE TABLE IF NOT EXISTS proveedor (
+   id bigint primary key,
+    nit int not null, 
+    empresa character varying(255) not null,
+    foreign key (id) references usuario(id) on update cascade on delete cascade
+);
+
+-- Tabla de cliente
+CREATE TABLE IF NOT EXISTS cliente (
+   	id bigint primary key,
+   	ci character varying(255),
+   	foreign key (id) references usuario(id) on update cascade on delete cascade
+);
+
+-- tabla de personal
+CREATE TABLE IF NOT EXISTS personal (
+   	id bigint primary key,
+   	profesion character varying(255),
+   	foreign key (id) references usuario(id) on update cascade on delete cascade
+);
+
+-- Tabla de gernero
+CREATE TABLE IF NOT EXISTS genero (
+	id bigserial primary key,
+    nombre character varying(255) not null
+);
+
+-- Tabla de promocion
+create table if not exists promocion (
+	id bigserial primary key,
+    nombre character varying(255) not null,
+    descuento int not null
+);
+
+-- Tabla de producto
+CREATE TABLE IF NOT EXISTS producto (
+   	id bigserial primary key,
+    titulo varchar(255) not null,
+    descripcion varchar(255) not null,
+	autor varchar(255) not null,
+	imagen varchar(255),
+	precio int not null,
+	stock int not null,
+	id_genero bigint not null,
+	id_promocion bigint,
+	foreign key (id_genero) references genero(id) on update cascade on delete cascade,
+	foreign key (id_promocion) references promocion(id) on update cascade on delete cascade
+);
+
+CREATE TABLE IF NOT EXISTS servicio (
+  	id bigserial primary key,
+    nombre character varying(255) not null,
+    precio int not null
+);
+
+CREATE TABLE IF NOT EXISTS venta (
+  	id bigserial primary key,
+	fecha date default current_date,
+    	hora time default current_time,
+    	total int not null,
+	id_cliente bigint not null,
+	id_servicio bigint,
+	foreign key (id_cliente) references cliente(id) on update cascade on delete cascade,
+	foreign key (id_servicio) references servicio(id) on update cascade on delete cascade
+);
+
+CREATE TABLE IF NOT EXISTS pago (
+	id bigserial primary key,
+	tipo character varying(255),
+	fecha date default current_date,
+    	hora character varying(255) default current_time,
+	detalle character varying(255),
+	id_venta bigint not null,
+	foreign key (id_venta) references venta(id) on update cascade on delete cascade
+);
+
+CREATE TABLE IF NOT EXISTS detalle_venta (
+	id bigserial primary key,
+	cantidad int not null,
+	total int not null,
+	id_venta bigint not null,
+	id_producto bigint not null,
+	foreign key (id_venta) references venta(id) on update cascade on delete cascade,
+	foreign key (id_producto) references producto(id) on update cascade on delete cascade
+);
+
+CREATE TABLE IF NOT EXISTS inventario (
+	id bigserial primary key,
+	nombre character varying(255) not null,
+	cantidad_disponible int not null,
+	id_producto bigint not null,
+	foreign key (id_producto) references producto(id) on update cascade on delete cascade
+);
+
+CREATE TABLE IF NOT EXISTS nota_ingreso (
+	id bigserial primary key,
+	cantidad int not null,
+	fecha date default current_date,
+	costo int not null,
+	total int not null,
+	id_inventario bigint not null,
+	id_proveedor bigint not null,
+	id_personal bigint not null,
+	foreign key (id_proveedor) references proveedor(id) on update cascade on delete cascade,
+	foreign key (id_inventario) references inventario(id) on update cascade on delete cascade,
+	foreign key (id_personal) references personal(id) on update cascade on delete cascade
+);
+
+CREATE TABLE IF NOT EXISTS comando (
+	id bigserial primary key,
+	caso_uso character varying(255) not null,
+	accion character varying(255) not null,
+	parametro character varying(255) not null,
+	ejemplo character varying(255) not null
+)
+
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Genero', 'Registrar', 'nombre', 'genero agregar [Horror]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Genero', 'Modificar', 'id, nombre', 'genero modificar [1; Horror editado]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Genero', 'Eliminar', 'id', 'genero eliminar [1]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Genero', 'Listar', 'ninguno', 'genero listar');
+
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Promocion', 'Registrar', 'nombre, descuento', 'promocion agregar [Navidad; 15]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Promocion', 'Modificar', 'id, nombre, descuento', 'promocion modificar [1; Navidad editado, 30]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Promocion', 'Eliminar', 'id', 'promocion eliminar [1]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Promocion', 'Listar', 'ninguno', 'promocion listar');
+
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Producto', 'Registrar', 'titulo, descripcion, autor, imagen, precio, stock, nombreDeGenero, nombreDeServicio', 'producto agregar [Clean Code; Libro de codigo limpio; Robert C. Martin; url de la imagen; 50; 80; Horror; Navidad]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Producto', 'Modificar', 'id, titulo, descripcion, autor, imagen, precio, stock, nombreDeGenero, nombreDeServicio', 'producto modificar [1; Clean Code; Libro de editado; Robert C Martin; url de la imagen; 50; 80; Horror; Navidad]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Producto', 'Eliminar', 'id', 'producto eliminar [1]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Producto', 'Listar', 'ninguno', 'producto listar');
+
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Usuario (Personal)', 'Registrar', 'email, password, nombre, telefono, direccion, profesion', 'personal agregar [pedro@gmail.com; 1234; Pedro Perez; 63112300; Av Bush; contador]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Usuario (Personal)', 'Modificar', 'id, email, password, nombre, telefono, direccion, profesion', 'personal modificar [1; pedro@gmail.com; 1234; Pedro Perez editado; 63112300; Av Bush; contador]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Usuario (Personal)', 'Eliminar', 'id', 'personal eliminar [1]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Usuario (Personal)', 'Listar', 'ninguno', 'personal listar');
+
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Usuario (Cliente)', 'Registrar', 'email, password, nombre, telefono, direccion, ci', 'cliente agregar [juan@gmail.com; 1234; Juan Perez; 62124027; Av Bush; 13241457]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Usuario (Cliente)', 'Modificar', 'id, email, password, nombre, telefono, direccion, ci', 'cliente modificar [2; juan@gmail.com; 1234; Juan Perez editado; 62124027; Av Bush; 13241457]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Usuario (Cliente)', 'Eliminar', 'id', 'cliente eliminar [2]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Usuario (Cliente)', 'Listar', 'ninguno', 'cliente listar');
+
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Usuario (Proveedor)', 'Registrar', 'email, password, nombre, telefono, direccion, nit, empresa', 'proveedor agregar [pepe@gmail.com; 1234; Pepe Perez; 7711222; Av Bush; 13524; Amazon]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Usuario (Proveedor)', 'Modificar', 'id, email, password, nombre, telefono, direccion, nit, empresa', 'proveedor modificar [3; pepe@gmail.com; 1234; Pepe Perez editar; 7711222; Av Bush; 13524; Amazon]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Usuario (Proveedor)', 'Eliminar', 'id', 'proveedor eliminar [3]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Usuario (Proveedor)', 'Listar', 'ninguno', 'proveedor listar');
+
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Servicio', 'Registrar', 'nombre, precio', 'servicio agregar [Delivery; 15]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Servicio', 'Modificar', 'id, nombre, precio', 'servicio modificar [1; Delivery editado; 30]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Servicio', 'Eliminar', 'id', 'servicio eliminar [1]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Servicio', 'Listar', 'ninguno', 'servicio listar');
+
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Venta', 'Registrar', 'total, emailCliente, nombreServicio', 'venta agregar [70; juan@gmail.com; Delivery]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Venta', 'Modificar', 'id, total, emailCliente, nombreServicio', 'venta modificar [1; 80; juan@gmail.com; Delivery]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Venta', 'Eliminar', 'id', 'venta eliminar [1]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Venta', 'Listar', 'ninguno', 'venta listar');
+
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Detalle Venta', 'Registrar', 'cantidad, total, id_venta, id_producto', 'detalleventa agregar [1; 50; 1; 1]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Detalle Venta', 'Modificar', 'id, total, emailCliente, nombreServicio', 'detalleventa modificar [1; 2; 100; 1; 1]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Detalle Venta', 'Eliminar', 'id', 'detalleventa eliminar [1]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Detalle Venta', 'Listar', 'ninguno', 'detalleventa listar');
+
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Pago', 'Registrar', 'tipo, fecha, hora, detalle, id_venta', 'pago agregar [tigo money; 2023-11-25; 13:30; venta de producto; 1]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Pago', 'Modificar', 'id, tipo, fecha, hora, detalle, id_venta', 'pago moficiar [1; tigo money; 2023-11-25; 13:30; venta de producto editado; 1]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Pago', 'Eliminar', 'id', 'pago eliminar [1]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Pago', 'Listar', 'ninguno', 'pago listar');
+
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Inventario', 'Registrar', 'nombre, cantidad_disponible, id_producto', 'inventario agregar [libro de programacion; 1; 1]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Inventario', 'Modificar', 'id, tipo, fecha, hora, detalle, id_venta', 'inventario modificar [1; libro de programacion editado; 1; 1]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Inventario', 'Eliminar', 'id', 'inventario eliminar [1]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Inventario', 'Listar', 'ninguno', 'inventario listar');
+
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Nota Ingreso', 'Registrar', 'cantidad, costo, total, id_inventario, id_proveedor, id_personal', 'notaingreso agregar [10; 30; 300; 1; 1; 2]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Nota Ingreso', 'Modificar', 'id, cantidad, costo, total, id_inventario, id_proveedor, id_personal', 'notaingreso modificar [1; 15; 30; 300; 1; 1; 2]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Nota Ingreso', 'Eliminar', 'id', 'notaingreso eliminar [1]');
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Nota Ingreso', 'Listar', 'ninguno', 'notaingreso listar');
+
+INSERT INTO comando(caso_uso, accion, parametro, ejemplo) values('Nota Ingreso', 'Listar', 'ninguno', 'notaingreso listar');
+
+
+--select * from "usuario";
+--select * from "genero";
+--select * from "promocion";
+--select * from "producto";
+
+-- host: www.tecnoweb.org.bo
+-- database: db_grupo02sc
+-- port: 5432
+-- user: grupo02sc
+-- password: grup002grup002
